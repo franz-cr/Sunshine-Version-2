@@ -4,6 +4,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -30,6 +33,38 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
 
     //FUNCIONES DE LA CLASE
     public ForecastFragment() {
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        //Calls the parent method
+        super.onCreate(savedInstanceState);
+
+        //This settings will create call backs to the 'onCreateOptionsMenu' and
+        //'onOptionsItemsSelected' method for the fragment after executing the
+        //methods in the main activity.
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.forecastfragment, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem fragmentItem) {
+        //VARIABLES:
+        String strPostalCode = "94043";
+        //Handle item selection
+        switch (fragmentItem.getItemId()) {
+            case R.id.action_refresh:
+                //Implementation for the 'Refresh' button
+                FetchWeatherTask weatherRefreshTask = new FetchWeatherTask();
+                weatherRefreshTask.execute(strPostalCode);
+                return true;
+            default:
+                return super.onOptionsItemSelected(fragmentItem);
+        }
     }
 
     @Override
@@ -68,12 +103,13 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
         return rootView;
     }
 
-    public class FetchWeatherTask extends AsyncTask<Void, Void, Void> {
+
+    public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
 
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
 
         @Override
-        protected Void doInBackground(Void... params) {
+        protected Void doInBackground(String... strPostalCode) {
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
             HttpURLConnection urlConnection = null;
@@ -86,10 +122,13 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 // Construct the URL for the OpenWeatherMap query
                 // Possible parameters are avaiable at OWM's forecast API page, at
                 // http://openweathermap.org/API#forecast
-                String baseUrl = "http://api.openweathermap.org/data/2.5/forecast/daily?q=94043&mode=json&units=metric&cnt=7";
-                String apiKey = "&APPID=5d7c1591368cffcc1624a4f0e2b5b630";
+                String baseUrl = "http://api.openweathermap.org/data/2.5/forecast/daily?q=" +
+                        strPostalCode[0] + "&mode=json&units=metric&cnt=7";
+                String appKey = "&APPID=5d7c1591368cffcc1624a4f0e2b5b630";
                 //String apiKey = "&APPID=" + BuildConfig.OPEN_WEATHER_MAP_API_KEY;
-                URL url = new URL(baseUrl.concat(apiKey));
+                URL url = new URL(baseUrl.concat(appKey));
+                //Prints out into the log the query URL
+                Log.i(LOG_TAG, url.toString());
 
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -118,6 +157,10 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                     return null;
                 }
                 forecastJsonStr = buffer.toString();
+
+                //Prints into the log the returned Json string
+                Log.i(LOG_TAG, forecastJsonStr);
+
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
                 // If the code didn't successfully get the weather data, there's no point in attemping
@@ -192,6 +235,6 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 }
             }
         }
-*/
+    */
 }
 
