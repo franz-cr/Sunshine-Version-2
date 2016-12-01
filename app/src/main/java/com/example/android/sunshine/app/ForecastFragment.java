@@ -1,5 +1,6 @@
 package com.example.android.sunshine.app;
 
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -106,10 +107,25 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
 
     public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
 
+        //VARIABLES GLOBALES DE CLASE
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
+        private final String STR_BASE_URL = "http://api.openweathermap.org/data/2.5/forecast/daily?";
+        final String STR_QUERY_PARAM = "q";
+        final String STR_MODE_PARAM = "mode";
+        final String STR_UNITS_PARAM = "units";
+        final String STR_DAYS_PARAM = "cnt";
+        final String STR_APPID_PARAM = "APPID";
+        private Uri UriBaseUrl = Uri.parse("http://api.openweathermap.org/data/2.5/forecast/daily");
+        private String strMode = "json";
+        private String strUnits = "metric";
+        private String strCount = "7";
+        private String strAppID = "5d7c1591368cffcc1624a4f0e2b5b630";
+        private Uri.Builder uriOpenWeatherMap = new Uri.Builder();
 
         @Override
         protected Void doInBackground(String... strPostalCode) {
+
+            //VARIABLES GLOBALES DE FUNCIÓN
             // These two need to be declared outside the try/catch
             // so that they can be closed in the finally block.
             HttpURLConnection urlConnection = null;
@@ -122,16 +138,38 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 // Construct the URL for the OpenWeatherMap query
                 // Possible parameters are avaiable at OWM's forecast API page, at
                 // http://openweathermap.org/API#forecast
-                String baseUrl = "http://api.openweathermap.org/data/2.5/forecast/daily?q=" +
-                        strPostalCode[0] + "&mode=json&units=metric&cnt=7";
-                String appKey = "&APPID=5d7c1591368cffcc1624a4f0e2b5b630";
+
+                // Initial approach: manual hardcoded URL
+                //String baseUrl = "http://api.openweathermap.org/data/2.5/forecast/daily?q=" +
+                //        strPostalCode[0] + "&mode=json&units=metric&cnt=7";
+                //String appKey = "&APPID=5d7c1591368cffcc1624a4f0e2b5b630";
                 //String apiKey = "&APPID=" + BuildConfig.OPEN_WEATHER_MAP_API_KEY;
-                URL url = new URL(baseUrl.concat(appKey));
+                //Pass hardcoded string Url to URL object
+                //URL urlOpenWeatherMap = new URL(baseUrl.concat(appKey));
+
+                // Best approach: using Uri and Uri.Builder classes to build the URL.
+                uriOpenWeatherMap = UriBaseUrl.buildUpon();
+                uriOpenWeatherMap.appendQueryParameter(STR_QUERY_PARAM, strPostalCode[0]);
+                uriOpenWeatherMap.appendQueryParameter(STR_MODE_PARAM, strMode);
+                uriOpenWeatherMap.appendQueryParameter(STR_UNITS_PARAM, strUnits);
+                uriOpenWeatherMap.appendQueryParameter(STR_DAYS_PARAM, strCount);
+                uriOpenWeatherMap.appendQueryParameter(STR_APPID_PARAM, strAppID);
+
+                uriOpenWeatherMap = UriBaseUrl.buildUpon()
+                    .appendQueryParameter(STR_QUERY_PARAM, strPostalCode[0])
+                    .appendQueryParameter(STR_MODE_PARAM, strMode)
+                    .appendQueryParameter(STR_UNITS_PARAM, strUnits)
+                    .appendQueryParameter(STR_DAYS_PARAM, strCount)
+                    .appendQueryParameter(STR_APPID_PARAM, strAppID);
+                //Pass built Uri to URL object
+                URL urlOpenWeatherMap = new URL(uriOpenWeatherMap.build().toString());
+
+
                 //Prints out into the log the query URL
-                Log.i(LOG_TAG, url.toString());
+                Log.i(LOG_TAG, urlOpenWeatherMap.toString());
 
                 // Create the request to OpenWeatherMap, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection = (HttpURLConnection) urlOpenWeatherMap.openConnection();
                 urlConnection.setRequestMethod("GET");
                 urlConnection.connect();
 
