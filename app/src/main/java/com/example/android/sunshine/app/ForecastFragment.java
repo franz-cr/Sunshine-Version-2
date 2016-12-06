@@ -13,6 +13,10 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,6 +38,41 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
 
     //FUNCIONES DE LA CLASE
     public ForecastFragment() {
+    }
+
+    public void parseJsonString(String strJsonForecast) {
+        //VARIABLES:
+        final String LOG_TAG = ForecastFragment.class.getSimpleName();
+        Double dblMaxTemp, dblMinTemp, dlbDayTemp;
+        Integer intDayIndex = 0;
+
+        //FUNCIONES:
+        try {
+            //Declare JSON Object and pass string with JSON data
+            JSONObject objJsonForecast = new JSONObject(strJsonForecast);
+            //Declare JSON data array
+            JSONArray arrJsonForecast = objJsonForecast.getJSONArray("list");
+            //Extract into a new JSON object first day forecast data:
+            JSONObject objJsonDayForecast = arrJsonForecast.getJSONObject(intDayIndex);
+            //Extract into new JSON object day temperatures
+            JSONObject objJsonDayTemps = objJsonDayForecast.getJSONObject("temp");
+            //Extract into strings day's temp data
+            dblMinTemp = objJsonDayTemps.getDouble("min");
+            dlbDayTemp = objJsonDayTemps.getDouble("day");
+            dblMaxTemp = objJsonDayTemps.getDouble("max");
+
+            //return dblMaxTemp;
+            //
+            //ListView lstVwWeekForecast = (ListView) R.id.listview_forecast;
+        }
+        catch (JSONException e) {
+            Log.e(LOG_TAG, e.toString());
+ /**        //Toast exception error:
+            Toast.makeText(getApplicationContext(),
+                    "Json parsing error: " + e.getMessage(),
+                    Toast.LENGTH_LONG).show();
+                    */
+        }
     }
 
     @Override
@@ -62,6 +101,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 //Implementation for the 'Refresh' button
                 FetchWeatherTask weatherRefreshTask = new FetchWeatherTask();
                 weatherRefreshTask.execute(strPostalCode);
+                parseJsonString(weatherRefreshTask.strJsonForecast);
                 return true;
             default:
                 return super.onOptionsItemSelected(fragmentItem);
@@ -71,7 +111,6 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
@@ -95,7 +134,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 R.id.list_item_forecast_textview,
                 strLstForecastData);
         //Find ListView's ID
-        ListView lstVwWeekForecast = (ListView)  rootView.findViewById(R.id.listview_forecast);
+        ListView lstVwWeekForecast = (ListView) rootView.findViewById(R.id.listview_forecast);
         //ListView lstVwWeekForecast = (ListView)container.findViewById(R.id.listview_forecast);
         //Attach ArrayAdapter to ListView control
         lstVwWeekForecast.setAdapter(arrAdpForecastData);
@@ -121,6 +160,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
         private String strCount = "7";
         private String strAppID = "5d7c1591368cffcc1624a4f0e2b5b630";
         private Uri.Builder uriOpenWeatherMap = new Uri.Builder();
+        public String strJsonForecast;
 
         @Override
         protected Void doInBackground(String... strPostalCode) {
@@ -166,7 +206,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
 
 
                 //Prints out into the log the query URL
-                Log.i(LOG_TAG, urlOpenWeatherMap.toString());
+                Log.i(LOG_TAG + " - urlOpenWeatherMap", urlOpenWeatherMap.toString());
 
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) urlOpenWeatherMap.openConnection();
@@ -194,10 +234,14 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                     // Stream was empty.  No point in parsing.
                     return null;
                 }
+                //Capturing the JSON string
                 forecastJsonStr = buffer.toString();
 
+                //Passing the JSON string to Global string variable
+                strJsonForecast = buffer.toString();
+
                 //Prints into the log the returned Json string
-                Log.i(LOG_TAG, forecastJsonStr);
+                Log.i(LOG_TAG + " - strJsonForecast", strJsonForecast);
 
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
