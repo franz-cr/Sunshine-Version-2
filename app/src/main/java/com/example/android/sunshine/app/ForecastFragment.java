@@ -123,7 +123,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
     }
 
 
-    public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
+    public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
         //VARIABLES GLOBALES DE SUBCLASE
         private final String LOG_TAG = FetchWeatherTask.class.getSimpleName();
@@ -154,10 +154,6 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
             return dblTemperature.toString();
         }
 
-        protected String simulateJsonString () {
-            return "{\"city\":{\"id\":5375480,\"name\":\"Mountain View\",\"coord\":{\"lon\":-122.083847,\"lat\":37.386051},\"country\":\"US\",\"population\":0},\"cod\":\"200\",\"message\":0.3816,\"cnt\":7,\"list\":[{\"dt\":1480705200,\"temp\":{\"day\":13.15,\"min\":5.48,\"max\":14.65,\"night\":5.48,\"eve\":12.65,\"morn\":9.49},\"pressure\":997.17,\"humidity\":53,\"weather\":[{\"id\":800,\"main\":\"Clear\",\"description\":\"clear sky\",\"icon\":\"01d\"}],\"speed\":3.01,\"deg\":359,\"clouds\":0},{\"dt\":1480791600,\"temp\":{\"day\":11.38,\"min\":0.37,\"max\":16.15,\"night\":3.14,\"eve\":14.74,\"morn\":0.75},\"pressure\":1000.21,\"humidity\":67,\"weather\":[{\"id\":800,\"main\":\"Clear\",\"description\":\"clear sky\",\"icon\":\"01d\"}],\"speed\":1.24,\"deg\":41,\"clouds\":0},{\"dt\":1480878000,\"temp\":{\"day\":10.58,\"min\":-0.12,\"max\":15.4,\"night\":8.21,\"eve\":13.78,\"morn\":0.48},\"pressure\":996.01,\"humidity\":68,\"weather\":[{\"id\":800,\"main\":\"Clear\",\"description\":\"clear sky\",\"icon\":\"01d\"}],\"speed\":0.39,\"deg\":24,\"clouds\":0},{\"dt\":1480964400,\"temp\":{\"day\":10.37,\"min\":8.59,\"max\":11.51,\"night\":9.84,\"eve\":11.51,\"morn\":8.59},\"pressure\":1013.19,\"humidity\":0,\"weather\":[{\"id\":500,\"main\":\"Rain\",\"description\":\"light rain\",\"icon\":\"10d\"}],\"speed\":5.41,\"deg\":334,\"clouds\":0},{\"dt\":1481054400,\"temp\":{\"day\":11.18,\"min\":7.23,\"max\":11.87,\"night\":7.23,\"eve\":11.87,\"morn\":8.62},\"pressure\":1014.36,\"humidity\":0,\"weather\":[{\"id\":500,\"main\":\"Rain\",\"description\":\"light rain\",\"icon\":\"10d\"}],\"speed\":2.21,\"deg\":314,\"clouds\":55,\"rain\":1.43},{\"dt\":1481140800,\"temp\":{\"day\":9.22,\"min\":5.17,\"max\":9.98,\"night\":9.11,\"eve\":9.98,\"morn\":5.17},\"pressure\":1019.41,\"humidity\":0,\"weather\":[{\"id\":500,\"main\":\"Rain\",\"description\":\"light rain\",\"icon\":\"10d\"}],\"speed\":3.26,\"deg\":150,\"clouds\":88,\"rain\":1.72},{\"dt\":1481227200,\"temp\":{\"day\":10.82,\"min\":9.24,\"max\":12.67,\"night\":12.67,\"eve\":12.63,\"morn\":9.24},\"pressure\":1014.78,\"humidity\":0,\"weather\":[{\"id\":502,\"main\":\"Rain\",\"description\":\"heavy intensity rain\",\"icon\":\"10d\"}],\"speed\":8.29,\"deg\":170,\"clouds\":100,\"rain\":27.67}]}";
-        }
-
         protected String buildForecastDay(int intDayIndex, String strCloudForecast, double dblMaxTemp,
                                           double dblMinTemp) {
             //VARIABLES E INICIALIZACIONES:
@@ -172,12 +168,13 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
 
             //Load clouds status data
             strBldDayForecast.append(strCloudForecast);
+            strBldDayForecast.append("; ");
 
             //Load day data array with the JSON extracted data
             strBldDayForecast.append(tempRoundUpDown(dblMaxTemp, Boolean.TRUE));
-            strBldDayForecast.append("º/ ");
+            strBldDayForecast.append("ºC/ ");
             strBldDayForecast.append(tempRoundUpDown(dblMinTemp, Boolean.FALSE));
-            strBldDayForecast.append("º");
+            strBldDayForecast.append("ºC");
 
             strDayForecast = strBldDayForecast.toString();
 
@@ -198,7 +195,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
             return strForecastDayName;
         }
 
-        public String[] parseJsonString(Integer intDaysCount) {
+        public String[] parseJsonString(Integer intDaysCount) throws JSONException {
             //VARIABLES E INICIALIZACIONES:
             final String LOG_TAG = ForecastFragment.class.getSimpleName();
             String[] strDaysFormattedData = new String[intDaysCount];
@@ -209,62 +206,51 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
             String strWeatherMain, strWeatherDescription, strWeatherIcon;
 
             //PROCESO:
-            try {
-                //Declare JSON Object and pass string with JSON data
-                JSONObject objJsonForecast = new JSONObject(strJsonForecast);
-                //Declare JSON data array
-                JSONArray arrJsonForecast = objJsonForecast.getJSONArray("list");
+            //Declare JSON Object and pass string with JSON data
+            JSONObject objJsonForecast = new JSONObject(strJsonForecast);
+            //Declare JSON data array
+            JSONArray arrJsonForecast = objJsonForecast.getJSONArray("list");
 
-                //Parse retrieved days
-                for (int i = 0; i < intDaysCount; i++) {
-                    //Extract into a new JSON object first day forecast data:
-                    JSONObject objJsonDayForecast = arrJsonForecast.getJSONObject(i);
+            //Parse retrieved days
+            for (int i = 0; i < intDaysCount; i++) {
+                //Extract into a new JSON object first day forecast data:
+                JSONObject objJsonDayForecast = arrJsonForecast.getJSONObject(i);
 
-                    //Extract data of selected day
-                    lngUnixDate = objJsonDayForecast.getLong("dt");
-                    dblPressure = objJsonDayForecast.getDouble("pressure");
-                    intHumidity = objJsonDayForecast.getInt("humidity");
-                    dblWindSpeed = objJsonDayForecast.getDouble("speed");
-                    intDegrees = objJsonDayForecast.getInt("deg");
-                    intClouds = objJsonDayForecast.getInt("clouds");
+                //Extract data of selected day
+                lngUnixDate = objJsonDayForecast.getLong("dt");
+                dblPressure = objJsonDayForecast.getDouble("pressure");
+                intHumidity = objJsonDayForecast.getInt("humidity");
+                dblWindSpeed = objJsonDayForecast.getDouble("speed");
+                intDegrees = objJsonDayForecast.getInt("deg");
+                intClouds = objJsonDayForecast.getInt("clouds");
 
-                    //Extract into new JSON object day's temperatures data
-                    JSONObject objJsonDayTemps = objJsonDayForecast.getJSONObject("temp");
-                    //Extract requested day temps data from temps object
-                    dblDayTemp = objJsonDayTemps.getDouble("day");
-                    dblMinTemp = objJsonDayTemps.getDouble("min");
-                    dblMaxTemp = objJsonDayTemps.getDouble("max");
-                    dblNightTemp = objJsonDayTemps.getDouble("night");
-                    dblEveningTemp = objJsonDayTemps.getDouble("eve");
-                    dblMorningTemp = objJsonDayTemps.getDouble("morn");
+                //Extract into new JSON object day's temperatures data
+                JSONObject objJsonDayTemps = objJsonDayForecast.getJSONObject("temp");
+                //Extract requested day temps data from temps object
+                dblDayTemp = objJsonDayTemps.getDouble("day");
+                dblMinTemp = objJsonDayTemps.getDouble("min");
+                dblMaxTemp = objJsonDayTemps.getDouble("max");
+                dblNightTemp = objJsonDayTemps.getDouble("night");
+                dblEveningTemp = objJsonDayTemps.getDouble("eve");
+                dblMorningTemp = objJsonDayTemps.getDouble("morn");
 
-                    //Extract into a JSON array day's first weather data
-                    JSONArray arrJsonWeather = objJsonDayForecast.getJSONArray("weather");
-                    JSONObject objJsonDayWeather = arrJsonWeather.getJSONObject(0);
-                    intWeatherID = objJsonDayWeather.getInt("id");
-                    strWeatherMain = objJsonDayWeather.getString("main");
-                    strWeatherDescription = objJsonDayWeather.getString("description");
-                    strWeatherIcon = objJsonDayWeather.getString("icon");
+                //Extract into a JSON array day's first weather data
+                JSONArray arrJsonWeather = objJsonDayForecast.getJSONArray("weather");
+                JSONObject objJsonDayWeather = arrJsonWeather.getJSONObject(0);
+                intWeatherID = objJsonDayWeather.getInt("id");
+                strWeatherMain = objJsonDayWeather.getString("main");
+                strWeatherDescription = objJsonDayWeather.getString("description");
+                strWeatherIcon = objJsonDayWeather.getString("icon");
 
-                    //Load String array with day's forecast data
-                    strDaysFormattedData[i] = buildForecastDay(i, strWeatherDescription, dblMaxTemp,
-                            dblMinTemp);
+                //Load String array with day's forecast data
+                strDaysFormattedData[i] = buildForecastDay(i, strWeatherDescription, dblMaxTemp,
+                        dblMinTemp);
                 }
-            }
-            catch (JSONException e) {
-                Log.e(LOG_TAG, e.toString());
-                /**        //Toast exception error:
-                 Toast.makeText(getApplicationContext(),
-                 "Json parsing error: " + e.getMessage(),
-                 Toast.LENGTH_LONG).show();
-                 */
-                strDaysFormattedData[0] = "ERROR";
-            }
-            return strDaysFormattedData;
+             return strDaysFormattedData;
         }
 
         @Override
-        protected Void doInBackground(String... strPostalCode) {
+        protected String[] doInBackground(String... strPostalCode) {
             //TODO: Cambiar tipo del método 'Void' a 'String[]'
 
             //VARIABLES GLOBALES DE FUNCIÓN
@@ -277,13 +263,6 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
             //Checking that postal code array is not empty (has at least 1 element)
             if (strPostalCode.length == 0)
                 return null;
-
-            //TODO: Delete or comment this sentence once parse string unit test is passed.
-            //Command added just for unit testing parse method.
-            if (strJsonForecast.length() > 0) {
-                parseJsonString(intForecastDays);
-                return null;
-            }
 
             try {
                 // Construct the URL for the OpenWeatherMap query
@@ -298,8 +277,8 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 //Pass built Uri to URL object
                 URL urlOpenWeatherMap = new URL(uriOpenWeatherMap.build().toString());
 
-                //Prints out into the log the query URL
-                Log.i(LOG_TAG + " - urlOpenWeatherMap", urlOpenWeatherMap.toString());
+                //Prints out into the log the query URL. Diabled in lesson 2.9.
+                //Log.i(LOG_TAG + " - urlOpenWeatherMap", urlOpenWeatherMap.toString());
 
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) urlOpenWeatherMap.openConnection();
@@ -331,8 +310,8 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 //Capturing the JSON string to Global string variable
                 strJsonForecast = buffer.toString();
 
-                //Prints into the log the returned Json string
-                Log.i(LOG_TAG + " - strJsonForecast", strJsonForecast);
+                //Prints into the log the returned Json string. Diabled in lesson 2.9.
+                //Log.i(LOG_TAG + " - strJsonForecast", strJsonForecast);
 
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
@@ -352,16 +331,31 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 }
             }
 
-            //TODO: Agregar la llamada al método 'parseJsonString' dentro de un 'try/catch'.
-
-            //TODO Ingresar un 'return' con el arreglo de strings proveniente de 'parseJsonString'.
-
+            //Parse JSON object returned
+            if (strJsonForecast.length() > 0) {
+                try {
+                    return parseJsonString(intForecastDays);
+                }
+                catch (JSONException e) {
+                    Log.e(LOG_TAG, e.toString());
+                    /**
+                     //Toast exception error:
+                     Toast.makeText(getApplicationContext(), "Json parsing error: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show();
+                     */
+                }
+            }
             return null;
         }
 
         @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
+        protected void onPostExecute(String[] strResult) {
+            arrAdpForecastData.clear();
+            //For each String in String array, add the string item to the Array Adapter.
+            for (String strForecastDayData : strResult) {
+                arrAdpForecastData.add(strForecastDayData);
+            }
+            //super.onPostExecute(result);
         }
     }
 }
