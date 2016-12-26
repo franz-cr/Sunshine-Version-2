@@ -1,5 +1,7 @@
 package com.example.android.sunshine.app;
 
+import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -10,8 +12,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -64,8 +68,6 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
     public boolean onOptionsItemSelected(MenuItem fragmentItem) {
         //VARIABLES:
         String strPostalCode = "94043";
-        String[] _strDayData = new String[6];
-        boolean blnJSONsimulate = true;
 
         //FUNCIONES:
         //Handle item selection
@@ -73,15 +75,6 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
             case R.id.action_refresh:
                 FetchWeatherTask weatherRefreshTask = new FetchWeatherTask();
                 weatherRefreshTask.execute(strPostalCode);
-/*                if (blnJSONsimulate)
-                    _strDayData[0] = getForecastDayName(0);
-                    //_strDayData = parseJsonString(simulateJsonString(), 0);
-                else {
-                    //Implementation for the 'Refresh' button
-                    //Passing JSON  string to parsing function while 'strJsonForecast' string
-                    //is still available in memory.
-                    _strDayData = parseJsonString(weatherRefreshTask.strJsonForecast, 0);
-                } */
                 return true;
             default:
                 return super.onOptionsItemSelected(fragmentItem);
@@ -107,7 +100,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
         };
         //Create a String ArrayList and pass StringArray as a list
         List<String> strLstForecastData = new ArrayList<String>(Arrays.asList(strFakeDataArray));
-        //Create ArrayAdapter with Strings
+        //Create ArrayAdapter of Strings
         arrAdpForecastData = new ArrayAdapter<String>(
                 getActivity(),
                 R.layout.list_item_forecast,
@@ -115,9 +108,33 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 strLstForecastData);
         //Find ListView's ID
         ListView lstVwWeekForecast = (ListView) rootView.findViewById(R.id.listview_forecast);
-        //ListView lstVwWeekForecast = (ListView)container.findViewById(R.id.listview_forecast);
+
         //Attach ArrayAdapter to ListView control
         lstVwWeekForecast.setAdapter(arrAdpForecastData);
+
+        //Added an item click listener to the ListView
+        lstVwWeekForecast.setOnItemClickListener(
+                new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        //VARIABLES E INICIALIZACIONES:
+                        Intent detailedForecast = new Intent(getActivity().getApplicationContext(),
+                                ForecastDetailActivity.class);
+
+                        //Implement item's click feature here.
+                        Context context = getActivity().getApplicationContext();
+                        int duration = Toast.LENGTH_LONG;
+                        String strForecast = arrAdpForecastData.getItem(position).toString();
+
+                        Toast toast = Toast.makeText(context, strForecast, duration);
+                        toast.show();
+
+                        //Pass clicked day forecast data to new Activity
+                        //detailedForecast.putExtra()
+                        getActivity().startActivity(detailedForecast);
+                    }
+                }
+        );
 
         return rootView;
     }
@@ -350,12 +367,15 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
 
         @Override
         protected void onPostExecute(String[] strResult) {
-            arrAdpForecastData.clear();
-            //For each String in String array, add the string item to the Array Adapter.
-            for (String strForecastDayData : strResult) {
-                arrAdpForecastData.add(strForecastDayData);
+
+            if (strResult.length > 0) {
+                arrAdpForecastData.clear();
+                //For each String in String array, add the string item to the Array Adapter.
+                for (String strForecastDayData : strResult) {
+                    arrAdpForecastData.add(strForecastDayData);
+                }
+                //super.onPostExecute(result);
             }
-            //super.onPostExecute(result);
         }
     }
 }
