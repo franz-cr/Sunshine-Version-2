@@ -4,6 +4,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:title="@string/action_fragment_item1"
+        android:id="@+id/action_fragment_item"
+        android:orderInCategory="80"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_refresh"
         android:orderInCategory="90"
         android:title="@string/action_refresh"

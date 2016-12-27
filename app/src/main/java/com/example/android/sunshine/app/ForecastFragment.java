@@ -61,6 +61,8 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+
+        //This command merges the menu items in this xml with the menu items in main options menu.
         inflater.inflate(R.menu.forecastfragment, menu);
     }
 
@@ -76,6 +78,15 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 FetchWeatherTask weatherRefreshTask = new FetchWeatherTask();
                 weatherRefreshTask.execute(strPostalCode);
                 return true;
+            case R.id.action_fragment_item:
+                //Toast variables
+                int duration = Toast.LENGTH_LONG;
+                String strForecast = "Seleccionó: " + fragmentItem.getTitle();
+                Context context = this.getActivity().getApplicationContext();
+                //Toast implementation
+                Toast toast = Toast.makeText(context, strForecast, duration);
+                toast.show();
+
             default:
                 return super.onOptionsItemSelected(fragmentItem);
         }
@@ -117,21 +128,16 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        //VARIABLES E INICIALIZACIONES:
-                        Intent detailedForecast = new Intent(getActivity().getApplicationContext(),
+                        String strForecast = arrAdpForecastData.getItem(position);
+                        String strKey = "com.example.android.sunshine.app";
+
+                        Intent detailedForecastIntent = new Intent(getActivity().getApplicationContext(),
                                 ForecastDetailActivity.class);
-
                         //Implement item's click feature here.
-                        Context context = getActivity().getApplicationContext();
-                        int duration = Toast.LENGTH_LONG;
-                        String strForecast = arrAdpForecastData.getItem(position).toString();
-
-                        Toast toast = Toast.makeText(context, strForecast, duration);
-                        toast.show();
-
                         //Pass clicked day forecast data to new Activity
-                        //detailedForecast.putExtra()
-                        getActivity().startActivity(detailedForecast);
+
+                        detailedForecastIntent.putExtra(strKey, strForecast);
+                        getActivity().startActivity(detailedForecastIntent);
                     }
                 }
         );

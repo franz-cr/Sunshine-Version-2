@@ -1,16 +1,19 @@
 package com.example.android.sunshine.app;
 
-import android.content.Intent;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //This code adds the fragment to the current activity where is declared in.
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
@@ -35,9 +38,18 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            //Toast variables
+            int duration = Toast.LENGTH_LONG;
+            String strForecast = "Seleccionó: " + item.getTitle();
+            Context context = getApplicationContext();
+            //Toast implementation
+            Toast toast = Toast.makeText(context, strForecast, duration);
+            toast.show();
+
+/*            //Declaration and implementation of new Activity
             Intent detailedForecast = new Intent(this, ForecastDetailActivity.class);
             this.startActivity(detailedForecast);
-
+*/
             return true;
         }
 
