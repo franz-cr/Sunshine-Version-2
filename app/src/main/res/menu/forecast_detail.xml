@@ -3,7 +3,7 @@
 
     <item
         android:title="@string/forecast_detail_menu_item1"
-        android:orderInCategory="70"
+        android:orderInCategory="90"
         android:id="@+id/forecast_detail_menu_item1"
          />
 </menu>

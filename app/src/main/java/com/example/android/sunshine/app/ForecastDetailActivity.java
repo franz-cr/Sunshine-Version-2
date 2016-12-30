@@ -17,6 +17,7 @@ public class ForecastDetailActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //Sets the UI to this activity
         setContentView(R.layout.activity_forecast_detail);
 
         Intent myIntent = getIntent(); //this.getIntent();
@@ -37,6 +38,7 @@ public class ForecastDetailActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
         getMenuInflater().inflate(R.menu.forecast_detail, menu);
         return super.onCreateOptionsMenu(menu);
     }
@@ -55,7 +57,9 @@ public class ForecastDetailActivity extends ActionBarActivity {
                 //Toast implementation
                 Toast toast = Toast.makeText(context, strForecast, duration);
                 toast.show();
-
+                return true;
+            case R.id.action_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

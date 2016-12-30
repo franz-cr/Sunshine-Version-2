@@ -2,9 +2,11 @@ package com.example.android.sunshine.app;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -69,24 +71,35 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem fragmentItem) {
         //VARIABLES:
+        Context context = this.getActivity().getApplicationContext();
         String strPostalCode = "94043";
+        String strForecast;
+        int duration = Toast.LENGTH_LONG;
 
         //FUNCIONES:
         //Handle item selection
         switch (fragmentItem.getItemId()) {
             case R.id.action_refresh:
+                //Get location location preference value:
+                SharedPreferences prfSunshinePrefs = PreferenceManager.getDefaultSharedPreferences(
+                        context);
+                String strLocationKey = getString(R.string.edit_text_location_key);
+                String strLocationDefault = getString(R.string.edit_text_location_default);
+                String strLocationValue = prfSunshinePrefs.getString(strLocationKey, strLocationDefault);
+                //Unit Test: Toast showing fetched postal code
+                strForecast = "Forecast postal code: " + strLocationValue;
+                Toast toast = Toast.makeText(context, strForecast, duration);
+                toast.show();
+                //Call the OWM REST API using the preferred location and parse the JSON string
                 FetchWeatherTask weatherRefreshTask = new FetchWeatherTask();
-                weatherRefreshTask.execute(strPostalCode);
+                weatherRefreshTask.execute(strLocationValue);
                 return true;
             case R.id.action_fragment_item:
                 //Toast variables
-                int duration = Toast.LENGTH_LONG;
-                String strForecast = "Seleccionó: " + fragmentItem.getTitle();
-                Context context = this.getActivity().getApplicationContext();
+                strForecast = "Seleccionó: " + fragmentItem.getTitle();
                 //Toast implementation
-                Toast toast = Toast.makeText(context, strForecast, duration);
-                toast.show();
-
+                Toast toast2 = Toast.makeText(context, strForecast, duration);
+                toast2.show();
             default:
                 return super.onOptionsItemSelected(fragmentItem);
         }
