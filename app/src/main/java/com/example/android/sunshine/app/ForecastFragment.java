@@ -31,9 +31,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -70,36 +68,23 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem fragmentItem) {
-        //VARIABLES:
+        //VARIABLES E INICIALIZACIONES:
         Context context = this.getActivity().getApplicationContext();
-        String strPostalCode = "94043";
-        String strForecast;
+        String strForecast = "";
         int duration = Toast.LENGTH_LONG;
 
-        //FUNCIONES:
+        //PROCESO DEL MÉTODO:
         //Handle item selection
         switch (fragmentItem.getItemId()) {
             case R.id.action_refresh:
-                //Get location location preference value:
-                SharedPreferences prfSunshinePrefs = PreferenceManager.getDefaultSharedPreferences(
-                        context);
-                String strLocationKey = getString(R.string.edit_text_location_key);
-                String strLocationDefault = getString(R.string.edit_text_location_default);
-                String strLocationValue = prfSunshinePrefs.getString(strLocationKey, strLocationDefault);
-                //Unit Test: Toast showing fetched postal code
-                strForecast = "Forecast postal code: " + strLocationValue;
-                Toast toast = Toast.makeText(context, strForecast, duration);
-                toast.show();
-                //Call the OWM REST API using the preferred location and parse the JSON string
-                FetchWeatherTask weatherRefreshTask = new FetchWeatherTask();
-                weatherRefreshTask.execute(strLocationValue);
+                updateWeather();
                 return true;
             case R.id.action_fragment_item:
                 //Toast variables
                 strForecast = "Seleccionó: " + fragmentItem.getTitle();
                 //Toast implementation
-                Toast toast2 = Toast.makeText(context, strForecast, duration);
-                toast2.show();
+                Toast toast = Toast.makeText(context, strForecast, duration);
+                toast.show();
             default:
                 return super.onOptionsItemSelected(fragmentItem);
         }
@@ -110,9 +95,8 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-
+        /*
         //Populate ListView with hardcoded fake data
-
         //Create an array of Strings with the hardcoded data items
         String[] strFakeDataArray = {
                 "Hoy, lluvia, 23º / 18º",
@@ -121,15 +105,16 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 "Domingo, tormentas, 24º/ 18º",
                 "Lunes, tormentas, 25º/ 17º",
                 "Martes, tormentas, 25º/ 17º"
-        };
+            };
         //Create a String ArrayList and pass StringArray as a list
         List<String> strLstForecastData = new ArrayList<String>(Arrays.asList(strFakeDataArray));
+        */
         //Create ArrayAdapter of Strings
         arrAdpForecastData = new ArrayAdapter<String>(
                 getActivity(),
                 R.layout.list_item_forecast,
                 R.id.list_item_forecast_textview,
-                strLstForecastData);
+                new ArrayList<String>()); //strLstForecastData);
         //Find ListView's ID
         ListView lstVwWeekForecast = (ListView) rootView.findViewById(R.id.listview_forecast);
 
@@ -158,6 +143,33 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
         return rootView;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
+    }
+
+    protected void updateWeather() {
+        //VARIABLES E INICIALIZACIONES:
+        Context context = this.getActivity().getApplicationContext();
+        String strPostalCode = "94043";
+        String strForecast = "";
+        int duration = Toast.LENGTH_LONG;
+
+        //PROCESO DEL MÉTODO
+        //Get location location preference value:
+        SharedPreferences prfSunshinePrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String strLocationKey = getString(R.string.edit_text_location_key);
+        String strLocationDefault = getString(R.string.edit_text_location_default);
+        String strLocationValue = prfSunshinePrefs.getString(strLocationKey, strLocationDefault);
+        //Unit Test: Toast showing fetched postal code
+        strForecast = "Postal code: " + strLocationValue;
+        Toast toast = Toast.makeText(context, strForecast, duration);
+        toast.show();
+        //Call the OWM REST API using the preferred location and parse the JSON string
+        FetchWeatherTask weatherRefreshTask = new FetchWeatherTask();
+        weatherRefreshTask.execute(strLocationValue);
+    }
 
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
 
