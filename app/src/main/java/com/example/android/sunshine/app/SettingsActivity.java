@@ -5,7 +5,6 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
-import android.widget.Toast;
 
 /**
  * Created by ulrichca on 28/12/2016.
@@ -24,6 +23,7 @@ public class SettingsActivity extends PreferenceActivity
         //Bind the preference summary field to the value of the location key. this makes that the
         //summary value underneath the pref changed updates to the value selected.
         bindPreferenceSummaryToValue(findPreference(getString(R.string.edit_text_location_key)));
+        bindPreferenceSummaryToValue(findPreference(getString(R.string.list_units_pref_key)));
     }
 
     /**
@@ -41,11 +41,13 @@ public class SettingsActivity extends PreferenceActivity
             PreferenceManager
                 .getDefaultSharedPreferences(preference.getContext())
                 .getString(preference.getKey(), ""));
+/*
         //Toast log
         Toast toast = Toast.makeText(getApplicationContext(),
                 "Method: bindPreferenceSummaryToValue",
                 Toast.LENGTH_LONG);
         toast.show();
+*/
         }
 
     @Override
@@ -65,12 +67,13 @@ public class SettingsActivity extends PreferenceActivity
             // For other preferences, set the summary to the value's simple string representation.
             preference.setSummary(stringValue);
         }
+/*
         //Toast log
         Toast toast = Toast.makeText(getApplicationContext(),
                 "Method: onPreferenceChange",
                 Toast.LENGTH_LONG);
         toast.show();
-
+*/
         return true;
         //return false;
     }

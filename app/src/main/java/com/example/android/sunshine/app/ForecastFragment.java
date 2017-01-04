@@ -42,7 +42,11 @@ import java.util.TimeZone;
 public class ForecastFragment extends android.support.v4.app.Fragment {
 
     //VARIABLES GLOBALES
+    //protected String[] strForecastData;
     protected ArrayAdapter<String> arrAdpForecastData;
+    //Specifies the minimum lapse in hours
+    protected static Integer intMinUpdateLapse = 4;
+    protected String strLocationKey = "sunshine_last_weather_update_time";
 
     //FUNCIONES DE LA CLASE
     public ForecastFragment() {
@@ -52,6 +56,9 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
     public void onCreate(Bundle savedInstanceState) {
         //Calls the parent method
         super.onCreate(savedInstanceState);
+
+        //Sets the last weather update in the past
+        //lngLastWeatherUpdateTime = System.currentTimeMillis() - (intMinUpdateLapse * 60 * 60 * 1000);
 
         //This settings will create call backs to the 'onCreateOptionsMenu' and
         //'onOptionsItemsSelected' method for the fragment after executing the
@@ -93,8 +100,9 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        //VARIABLES E INICIALIZACIONES
 
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        //PROCESO:
         /*
         //Populate ListView with hardcoded fake data
         //Create an array of Strings with the hardcoded data items
@@ -106,22 +114,36 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 "Lunes, tormentas, 25º/ 17º",
                 "Martes, tormentas, 25º/ 17º"
             };
-        //Create a String ArrayList and pass StringArray as a list
-        List<String> strLstForecastData = new ArrayList<String>(Arrays.asList(strFakeDataArray));
+        //Populate ListView with forecast data
+        Context context = this.getActivity().getApplicationContext();
+        SharedPreferences prfSunshinePrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (strForecastData == (null)) {
+            updateWeather();
+            SharedPreferences.Editor edtSunshinePrefs = prfSunshinePrefs.edit();
+            edtSunshinePrefs.putLong(strLocationKey, (System.currentTimeMillis()));
+            edtSunshinePrefs.apply();
+        }
         */
+
+        //Create a String ArrayList and pass StringArray as a list
+        //List<String> strLstForecastData = new ArrayList<String>(Arrays.asList(strForecastData));
         //Create ArrayAdapter of Strings
         arrAdpForecastData = new ArrayAdapter<String>(
-                getActivity(),
-                R.layout.list_item_forecast,
-                R.id.list_item_forecast_textview,
-                new ArrayList<String>()); //strLstForecastData);
-        //Find ListView's ID
+                getActivity(),                      // The current context (this activity)
+                R.layout.list_item_forecast,        // The name of the layout ID
+                R.id.list_item_forecast_textview,   // The ID of the textview to populate
+                //strLstForecastData);
+                new ArrayList<String>());
+
+        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+
+        //Get a reference to the ListView, and attach this adapter to it
         ListView lstVwWeekForecast = (ListView) rootView.findViewById(R.id.listview_forecast);
 
-        //Attach ArrayAdapter to ListView control
+        //Attach empty ArrayAdapter to ListView control
         lstVwWeekForecast.setAdapter(arrAdpForecastData);
 
-        //Added an item click listener to the ListView
+        //Declare an item click listener to the ListView
         lstVwWeekForecast.setOnItemClickListener(
                 new AdapterView.OnItemClickListener() {
                     @Override
@@ -145,6 +167,23 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
 
     @Override
     public void onStart() {
+        /*
+        //VARIABLES E INICIALIZACIONES
+        Context context = this.getActivity().getApplicationContext();
+        SharedPreferences prfSunshinePrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        //Keeps the latest weather update time in milliseconds
+        Long lngLastWeatherUpdateTime = System.currentTimeMillis() - (intMinUpdateLapse * 60 * 60 * 1001);
+
+        //PROCESO:
+        //Check if new weather update is needed
+        lngLastWeatherUpdateTime = prfSunshinePrefs.getLong(strLocationKey, lngLastWeatherUpdateTime);
+        if ((System.currentTimeMillis()) > (lngLastWeatherUpdateTime + (intMinUpdateLapse * 60 * 60 * 1000))) {
+            updateWeather();
+            SharedPreferences.Editor edtSunshinePrefs = prfSunshinePrefs.edit();
+            edtSunshinePrefs.putLong(strLocationKey, (System.currentTimeMillis()));
+            edtSunshinePrefs.apply();
+        }
+        */
         super.onStart();
         updateWeather();
     }
@@ -152,15 +191,15 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
     protected void updateWeather() {
         //VARIABLES E INICIALIZACIONES:
         Context context = this.getActivity().getApplicationContext();
-        String strPostalCode = "94043";
+        //String strPostalCode = "94043";
         String strForecast = "";
+        String strLocationKey = getString(R.string.edit_text_location_key);
+        String strLocationDefault = getString(R.string.edit_text_location_default);
         int duration = Toast.LENGTH_LONG;
 
         //PROCESO DEL MÉTODO
         //Get location location preference value:
         SharedPreferences prfSunshinePrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String strLocationKey = getString(R.string.edit_text_location_key);
-        String strLocationDefault = getString(R.string.edit_text_location_default);
         String strLocationValue = prfSunshinePrefs.getString(strLocationKey, strLocationDefault);
         //Unit Test: Toast showing fetched postal code
         strForecast = "Postal code: " + strLocationValue;
@@ -192,14 +231,26 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
 
         public String tempRoundUpDown (Double dblTemperature, Boolean blnRoundUp) {
             //VARIABLES E INICIALIZACIONES:
+            Context context = getActivity().getApplication().getApplicationContext();
+            SharedPreferences prfSunshinePrefs = PreferenceManager.getDefaultSharedPreferences(context);
+            String strUnitAcronym = "ºC";
+            String strResult;
+            String strUnitsKey = getString(R.string.list_units_pref_key);
+            String strUnitsDefault = getString(R.string.list_units_pref_default);
+            String strUnitsValue = prfSunshinePrefs.getString(strUnitsKey, strUnitsDefault);
 
-            //FUNCIONES:
+            //PROCESO:
+            if (strUnitsValue.equals(getString(R.string.list_units_pref_value_1))) {
+                dblTemperature = (dblTemperature * 1.8 + 32);
+                strUnitAcronym = "ºF";
+            }
             if (blnRoundUp)
                 dblTemperature = Math.ceil(dblTemperature);
             else
                 dblTemperature = Math.floor(dblTemperature);
 
-            return dblTemperature.toString();
+            strResult = dblTemperature.toString() + strUnitAcronym;
+            return strResult;
         }
 
         protected String buildForecastDay(int intDayIndex, String strCloudForecast, double dblMaxTemp,
@@ -207,22 +258,22 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
             //VARIABLES E INICIALIZACIONES:
             StringBuilder strBldDayForecast = new StringBuilder();
             String strDayForecast = "";
+            String strSeparator = " - ";
 
             //PROCESO:
 
             //Get date in long format
             strBldDayForecast.append(getForecastDayName(intDayIndex));
-            strBldDayForecast.append("; ");
+            strBldDayForecast.append(strSeparator);
 
             //Load clouds status data
             strBldDayForecast.append(strCloudForecast);
-            strBldDayForecast.append("; ");
+            strBldDayForecast.append(strSeparator);
 
             //Load day data array with the JSON extracted data
             strBldDayForecast.append(tempRoundUpDown(dblMaxTemp, Boolean.TRUE));
-            strBldDayForecast.append("ºC/ ");
+            strBldDayForecast.append("/");
             strBldDayForecast.append(tempRoundUpDown(dblMinTemp, Boolean.FALSE));
-            strBldDayForecast.append("ºC");
 
             strDayForecast = strBldDayForecast.toString();
 
@@ -233,7 +284,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
             //VARIABLES E INICIALIZACIONES:
             String strForecastDayName = "";
             Calendar calForecastDay = Calendar.getInstance(TimeZone.getDefault(), Locale.getDefault());
-            SimpleDateFormat dtFmtShortDayDate = new SimpleDateFormat("EEEE, MMMM dd, yyyy",
+            SimpleDateFormat dtFmtShortDayDate = new SimpleDateFormat("EEEE, MMM dd",
                     Locale.getDefault());
 
             //PROCESO:
@@ -247,6 +298,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
             //VARIABLES E INICIALIZACIONES:
             final String LOG_TAG = ForecastFragment.class.getSimpleName();
             String[] strDaysFormattedData = new String[intDaysCount];
+            //strForecastData = new String[intDaysCount];
             Integer intHumidity, intWeatherID, intClouds, intDegrees;
             Long lngUnixDate;
             Double dblMaxTemp, dblMinTemp, dblDayTemp, dblNightTemp, dblMorningTemp, dblEveningTemp,
@@ -293,6 +345,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 //Load String array with day's forecast data
                 strDaysFormattedData[i] = buildForecastDay(i, strWeatherDescription, dblMaxTemp,
                         dblMinTemp);
+                //strForecastData[i] = strDaysFormattedData[i];
                 }
              return strDaysFormattedData;
         }

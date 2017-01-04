@@ -10,10 +10,10 @@
         android:title="@string/edit_text_location_title"
         android:summary="@string/edit_text_location_summary" />
     <ListPreference
-        android:defaultValue="2"
+        android:defaultValue="@string/list_units_pref_default"
         android:title="@string/list_units_pref_title"
-        android:entries="@array/list_units_preference"
-        android:entryValues="@array/list_units_preference"
+        android:entries="@array/list_units_pref_options_label"
+        android:entryValues="@array/list_units_pref_options_value"
         android:key="@string/list_units_pref_key"
         android:summary="@string/list_units_pref_summary" />
     <SwitchPreference

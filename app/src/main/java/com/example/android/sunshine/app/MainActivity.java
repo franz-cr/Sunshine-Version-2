@@ -10,6 +10,9 @@ import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity {
 
+    //VARIABLES GLOBALES
+    protected String[] strForecastDataMain = {"Item 1", "Item 2", "Item 3"};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
