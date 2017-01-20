@@ -112,7 +112,50 @@ public class TestDb extends AndroidTestCase {
         also make use of the ValidateCurrentRecord function from within TestUtilities.
     */
     public void testLocationTable() {
-        insertLocation();
+        // TODO: 16/01/2017  Add the necessary code to test and validate the 'LocationTable'.
+
+        // 1. Get a reference to a writable DB
+        WeatherDbHelper dbHelper = new WeatherDbHelper(this.mContext);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        // 2. Create values for the 'LocationTable' using the 'northPole' method of the 'TestUtilities' class
+        ContentValues locationValues = TestUtilities.createNorthPoleLocationValues();
+
+        // 3. Insert row with values into 'LocationTable' and get the row ID.
+        long locationRowId = db.insert(
+                WeatherContract.LocationEntry.TABLE_NAME,
+                null,
+                locationValues);
+
+        assertFalse("Insert to location table failed", locationRowId == -1);
+
+        // 4. If the row was inserted without issues proceed to query the inserted row.
+        if (locationRowId != -1) {
+            Cursor locationCursor = db.query(
+                    WeatherContract.LocationEntry.TABLE_NAME,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null);
+            locationCursor.moveToFirst();
+            // Move the cursor to the first valid database row and check to see if we have any rows
+            assertTrue( "Error: No Records returned from location query", locationCursor.moveToFirst() );
+
+            // Fifth Step: Validate the location Query
+            TestUtilities.validateCurrentRecord("testInsertReadDb locationEntry failed to validate",
+                    locationCursor, locationValues);
+
+            // Move the cursor to demonstrate that there is only one record in the database
+            assertFalse( "Error: More than one record returned from weather query",
+                    locationCursor.moveToNext() );
+
+            // Sixth Step: Close cursor and database
+            locationCursor.close();
+            dbHelper.close();        }
+
+        //insertLocation();
     }
 
     /*
